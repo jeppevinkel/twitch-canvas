@@ -1,0 +1,42 @@
+{
+  "badges": {
+    "premium": true
+  },
+  "color": "#1E90FF",
+  "displayName": "Jeppevinkel",
+  "emotes": [
+    {
+      "id": "304129005",
+      "start": 5,
+      "end": 16
+    },
+    {
+      "id": "304129005",
+      "start": 52,
+      "end": 63
+    },
+    {
+      "id": "304129005",
+      "start": 77,
+      "end": 88
+    },
+    {
+      "id": "304129005",
+      "start": 90,
+      "end": 101
+    },
+    {
+      "id": "304129005",
+      "start": 147,
+      "end": 158
+    }
+  ],
+  "flags": "",
+  "mod": false,
+  "subscriber": false,
+  "tmiSentTs": "1613002469113",
+  "userType": "",
+  "username": "jeppevinkel",
+  "event": "PRIVMSG",
+  "messageContent": "This boll7708meat is a test with writing a bunch of boll7708meat is a single boll7708meat boll7708meat messeage! I will make sure not to make this boll7708meat too short!!!"
+}

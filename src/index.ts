@@ -1,23 +1,21 @@
 import {createCanvas, Image, loadImage, CanvasRenderingContext2D} from 'canvas';
 import * as fs from "fs";
 import * as path from "path";
-import {IEmote, IEmotePosition, IRect, IMessage} from './MessageTypes'
+import { IEmotePosition, IRect, IMessage } from './MessageTypes';
+import * as utils from './utils';
 
-const testMessage = require('../resources/testMessage.json');
-
-const fontSize = 16;
-
-async function drawTwitchMessage(ctx: CanvasRenderingContext2D, pos: IRect, message: IMessage) {
-    //ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-    //ctx.fillRect(pos.x, pos.y, pos.width, pos.height);
-    ctx.fillStyle = 'rgba(240, 240, 240, 1)';
-    let image = await loadImage('./resources/testEmote.png');
-
+async function drawTwitchMessage(ctx: CanvasRenderingContext2D, pos: IRect, emoteSize: number, message: IMessage) {
     message.messageContent = message.messageContent.split('\n').join(' ');
 
     const words = message.messageContent.split(' ');
     const wordSpacing = ctx.measureText(" ").width;
-    let emotes = testMessage.emotes.sort(((a, b) => a.start - b.start));
+
+    let emotes: IEmotePosition[] = await Promise.all(message.emotes.sort(((a, b) => a.start - b.start)).map(e => {
+        return {
+            start: e.start as number,
+            image: utils.loadImage(utils.getEmoticonUrl(e.id), `${e.id}.png`, 'emotes', null) as Promise<string>
+        } as IEmotePosition;
+    }));
 
     let nextEmote = emotes.shift();
 
@@ -25,19 +23,24 @@ async function drawTwitchMessage(ctx: CanvasRenderingContext2D, pos: IRect, mess
     let line = 0;
     let xPos = pos.x;
     for (let i = 0; i < words.length; i++) {
-        const wordsWidth = nextEmote.start == index ? fontSize : ctx.measureText(words[i]).width;
+        const wordsWidth = nextEmote.start == index ? emoteSize : ctx.measureText(words[i]).width;
         if (xPos + wordsWidth > pos.x + pos.width) {
             line++;
             xPos = pos.x;
         }
 
-        const lineY = pos.y + fontSize + (fontSize * 1.1) * line;
+        const lineY = pos.y + emoteSize + (emoteSize * 1.1) * line;
 
         if (nextEmote.start == index) {
+            let image = await new Promise(async (resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = new Buffer(await nextEmote.image, 'base64');
+            });
 
+            ctx.drawImage(image, xPos, lineY - emoteSize, emoteSize, emoteSize);
 
-
-            ctx.drawImage(image, xPos, lineY - fontSize, fontSize, fontSize);
             if (emotes.length) nextEmote = emotes.shift();
 
             xPos += wordsWidth + wordSpacing;
@@ -61,6 +64,9 @@ async function run() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(notifBg, 0, 0);
 
+    const testMessage = require('../resources/testMessage.json');
+
+    const fontSize = 16;
     //ctx.font = `${fontSize}pt Lucida Sans Typewriter`;
     ctx.font = `${fontSize}pt Sans`;
 
@@ -85,7 +91,7 @@ async function run() {
     ctx.drawImage(profile, 0, 0, 130, 130);
     ctx.restore();
 
-    drawTwitchMessage(ctx, msgBox, testMessage).then(() => {
+    drawTwitchMessage(ctx, msgBox, fontSize, testMessage).then(() => {
         canvas.createPNGStream().pipe(fs.createWriteStream(path.join(__dirname, 'message.png')));
     });
 }

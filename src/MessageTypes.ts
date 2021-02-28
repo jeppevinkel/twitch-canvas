@@ -1,3 +1,5 @@
+import { Image } from "canvas";
+
 export interface IEmote {
     id: string
     start: number
@@ -5,8 +7,8 @@ export interface IEmote {
 }
 
 export interface IEmotePosition {
-    index: number
-    id: string
+    start: number
+    image: Promise<string>
 }
 
 export interface IRect {
